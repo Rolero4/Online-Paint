@@ -87,7 +87,10 @@ canvas{
     display: flex;
     justify-content: space-between;
     height: 4rem;
+    align-items: center;
+    padding: 0.5rem;
 }
+
 
 .menu-button{
     box-sizing: border-box;
@@ -161,8 +164,14 @@ nav{
 }
 
 .logo{
-    max-height: 100%;
-    margin: 1rem;
+    max-height: 90%;
+    margin-left: 0.2rem;
+}
+
+#pageName{
+    font-size: 2rem;
+    font-weight: bold;
+    text-align: center;
 }
 
 .close-button{

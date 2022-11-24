@@ -27,7 +27,6 @@ function closeSideBar(){
 function toggleSideBar(){
     sidebar.classList.toggle("show-sidebar");
 	// board.style.visibility = 'hidden';
-
 };
 
 // adding checked to current option
@@ -57,7 +56,6 @@ let lineCoordinates = {x: 0, y: 0};
 let currentLine = new Line({x: 0, y: 0}, {x: 0, y: 0}, 'black', 0);
 let currentCircle = new Circle({x: 0, y: 0}, '0', 'black', 0);
 let currentCurve = [];
-// const pageName = window.location.pathname.split("/").pop().split(".")[0];
 
 const paintings = [];
 
@@ -77,20 +75,16 @@ window.onload = function(){
 	resetButton.addEventListener('click', function(){
 		clearCanvas(contextFinal);
 	});
-	//local storage
-	// var index = localStorage.getItem('index');
-	// if(index == null)
-	// 	index = 0;
-	// console.log(index)
-
 
 	//parametr url
 	const queryString = window.location.search;
 	const urlParams = new URLSearchParams(queryString);
 	const id = urlParams.get('index');
-	console.log(id);
 	if(id == null)
 		window.open('index.html', '_self');
+	const name = urlParams.get('name');
+	const pageName = document.getElementById('pageName');
+	pageName.innerText = name.replace('%', ' ');
 }
 
 
