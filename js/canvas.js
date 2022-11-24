@@ -8,6 +8,7 @@ const colorInput = document.getElementById("color");
 const sizeInput = document.getElementById("size");
 
 const resetButton = document.getElementById('reset');
+const goToMenuButton = document.getElementById('back');
 
 const toolButtons = document.querySelectorAll('.option button');
 const descriptions = document.querySelectorAll('.description');
@@ -65,6 +66,8 @@ window.onload = function(){
 	// canvas events
 	canvas.width = canvasDraft.width = canvasDraft.offsetWidth;
 	canvas.height = canvasDraft.height = canvasDraft.offsetHeight;
+	canvas.width = canvasDraft.width;
+	canvas.height = canvasDraft.height;
 	canvasDraft.addEventListener('touchstart', touchStart);
 	canvasDraft.addEventListener('touchmove', touchMove);
 	canvasDraft.addEventListener('touchend', touchEnd);
@@ -74,6 +77,11 @@ window.onload = function(){
 	// menu buttons events
 	resetButton.addEventListener('click', function(){
 		clearCanvas(contextFinal);
+	});
+
+	goToMenuButton.addEventListener('click', function(){
+		window.open('index.html', '_self');
+		console.log("back");
 	});
 
 	//parametr url

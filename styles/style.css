@@ -46,9 +46,11 @@ section{
 
 
 #list{
+    display: flex;
+    flex-direction: column;
     text-decoration: none;
     padding: 0.5rem;
-    overflow-y: scroll;
+    overflow-y: auto;
     align-content: center;
     text-align: center;
     margin-bottom: 0.5rem;
@@ -79,3 +81,8 @@ section{
     border-radius: 3rem;
 }
 
+@media screen and (min-width: 1000px) {
+    .title{
+        font-size: 2rem;
+    }
+}

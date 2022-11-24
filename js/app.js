@@ -1,48 +1,77 @@
 const newPageButton = document.getElementById('new-page')
 const listOfButtons = document.getElementById('list');
-const pages = [
-    "Strona%1",
-    "Strona%Smieszka",
-    "Chrzest",
-    "Test"
-];
+const pages = [];
 
 window.onload = function(){
-    createButtons();
-    const pageButtons = document.querySelectorAll(".page-selector");
-    pageButtons.forEach(element => {
-        element.addEventListener('click', goToCanvas);
-    });
+    getPagesNamesFromPhp();
     newPageButton.addEventListener('click', newPage);
-    pages
 }
 
-function getButtonsNamesFromPhp(){
-    // wysyla zapytanie do php i uzupeia pages;
-    // jak get bedzie zrealiozwane wczy funkcje createButtons
+function getPagesNamesFromPhp(){
+    const xhr = new XMLHttpRequest();
+
+    xhr.onreadystatechange = function() {
+      if(xhr.readyState === 4){
+        if(xhr.status === 200 || xhr.status === 304){
+            const readyResponse = JSON.parse(this.response)
+            console.log(readyResponse); 
+            createButtons(readyResponse);
+        }
+      }
+    };
+    xhr.open("GET", "./php/getPagesNames.php", true); 
+    xhr.setRequestHeader('Content-Type', ' application/json')
+    xhr.send();
 }
 
-function createButtons(){
+function sendNamesToPhp(){
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "./php/sendPagesNames.php", true);
+    xhr.setRequestHeader('Content-type', "application/json");
+    xhr.onreadystatechange = function () { //Call a function when the state changes.
+        if (xhr.readyState == 4 && xhr.status == 200) {
+            console.log("sent");               
+        }
+    };
+    xhr.send(JSON.stringify(Object.assign({}, pages)));
+}
+
+function createButtons(response){
+    for(let i in response) { 
+        pages.push(response[i]); 
+    }; 
+    console.log(pages);
+    let currentId = 0;
     pages.forEach(element => {
         const button = document.createElement('button')
         button.innerText = element.replace('%', ' ');
         button.classList = 'btn page-selector'
+        button.dataset.id = currentId;
+        currentId++;
         listOfButtons.appendChild(button)
+    });
+    const pageButtons = document.querySelectorAll(".page-selector");
+    pageButtons.forEach(element => {
+        element.addEventListener('click', goToCanvas);
     });
 }
 
 function newPage(){
-    let newPageName = undefined;
-    newPageName = prompt ("Enter title od the project(max 15 characters, no '%' use and duplicates)", "Page " + pages.length); 
-    if(newPageName != undefined){
-        while(newPageName.length >= 15 || newPageName.includes("%") || pages.includes(newPageName)){
-            newPageName = prompt ("Too many characters!(max 15) or '%' use", "Page " + pages.length); 
-        }
+    let newPageName = null;
+    newPageName = prompt ("Enter title od the project(max 15 characters, no '%' use and duplicates)", "Page " + pages.length);
+    if(newPageName == null) return;
+    while(newPageName == null || newPageName.length >= 15 || newPageName.includes("%") || pages.includes(newPageName)){
+        newPageName = prompt ("Too many characters!(max 15) or '%' use", "Page " + pages.length); 
+        if(newPageName == null) return;
+    }
+    if(newPageName != null){
         newPageName.replace(' ', '%')
         pages.push(newPageName);
+        sendNamesToPhp();
         addNewButton();
-        goToCanvas();
-    } 
+        goToNewCanvas();
+    }
+
 }
 
 function addNewButton(){
@@ -53,24 +82,13 @@ function addNewButton(){
     listOfButtons.appendChild(button)
 }
 
-
-
-
 // go to canvas with event
 function goToCanvas(e){
     let index = e.target.dataset.id;
     window.open('canvas.html?index='+index+"&name="+pages[index]);
 }
 // go to new canvas
-function goToCanvas(){
+function goToNewCanvas(){
     index = pages.length-1;
     window.open('canvas.html?index='+index+"&name="+pages[index]);
 }
-
-// test z local storage
-// function test(e){
-//     let index = e.target.dataset.id;
-//     localStorage.setItem('index', index);
-//     location.href = "canvas.html";
-//     window.open('canvas.html');
-// }
