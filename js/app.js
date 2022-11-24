@@ -36,6 +36,25 @@ function sendNamesToPhp(){
     xhr.send(JSON.stringify(Object.assign({}, pages)));
 }
 
+function Canvas(id){
+	this.id = id;
+	this.paintings = [];
+}
+
+function sendNewCanvasToPhp(id){
+	const xhr = new XMLHttpRequest();
+    xhr.open("POST", "./php/addNewCanvas.php", true);
+    xhr.setRequestHeader('Content-type', "application/json");
+    xhr.onreadystatechange = function () { //Call a function when the state changes.
+        if (xhr.readyState == 4 && xhr.status == 200) {
+            console.log("sent");               
+        }
+    };
+    xhr.send(JSON.stringify(Object.assign({}, new Canvas(id))));
+
+}
+
+
 function createButtons(response){
     for(let i in response) { 
         pages.push(response[i]); 
@@ -70,6 +89,7 @@ function newPage(){
         sendNamesToPhp();
         addNewButton();
         goToNewCanvas();
+        sendNewCanvasToPhp(pages.length -1);
     }
 
 }
