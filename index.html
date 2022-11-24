@@ -6,9 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="./styles/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css"/>
-    <script src="./js/app.js"></script>
+    <script src="./js/app.js" defer></script>
 </head>
 <body>
-    <a href="canvas.html">click here!</a>
+    <h1 class="title">Welcome!</h1>
+    <section class="section-list">
+        <button id="new-page" class="btn">Create New Page</button>
+        <h3 class="title"> OR </h3>
+        <p class="title small"> Select Old Project:</p>
+        <ul id="list">
+            <li><button class="btn page-selector" data-id="0">Strona 1</button></li>
+            <li><button class="btn page-selector" data-id="1">Strona Śmieszka</button></li>
+            <li><button class="btn page-selector" data-id="2">Test</button></li>
+            <li><button class="btn page-selector" data-id="3">Chrzest</button></li>
+        </ul>
+    </section>
+
 </body>
 </html>

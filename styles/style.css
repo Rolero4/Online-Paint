@@ -1,5 +1,6 @@
 :root{
-	box-sizing:border-box
+	box-sizing:border-box;
+    font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 
 *,::after,::before{
@@ -13,256 +14,68 @@
 
 body{
     display: flex;
+    flex-direction: column;
     justify-content: center;
     background-color: lightyellow;
+    padding: 0.5rem;
 }
 
-.title{
-    font-size: 1.2rem;
-    font-weight: bold;
-    text-align: center;
-    margin: 0 auto;
-    width: 100%;
-}
-
-.container{
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    gap: 0.5rem;
-    padding: 0 0.5rem;
-}
 
 section{
-    background-color: white;
-    padding: 0.5rem;
-}
-
-/* #clear{
-    width: 50%;
-    margin: 0.1rem auto;
-    padding: 0.3rem;
-    border-radius: 4rem;
-    background-color: rgb(23, 23, 131);
-    color: white;
-    font-size: 1.2rem;
-    font-weight: bold;
-} */
-
-.board{
-    margin: 0.5rem 0;
-    width: 100%;
-    height: 80vh;
-    position: relative;
-}
-
-
-canvas{
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    left: 0; 
-    top: 0; 
-    z-index: 0;
-}
-
-#draft{
-    width: 100%;
-    height: 80vh;
-    position: absolute;
-    left: 0; 
-    top: 0; 
-}
-
-#clear:active{
-    background-color: skyblue;
-    color: #000000;
-}
-
-
-
-/* menu */
-
-.row{
     display: flex;
-    justify-content: space-between;
-    height: 4rem;
+    flex-direction: column;
+    margin: 1rem 0;
+    align-items: center;
 }
 
-.menu-button{
-    box-sizing: border-box;
-    margin: 0.2rem;
-    padding: 0.5rem;
-    background-color: transparent;
-    border: 0;
-    font-weight: bold;
-    font-size: 2.5rem;
-    color: #000000;
-}
-
-.menu-button:active{
-    color: skyblue;
-    transition: all 0.3s;
-}
-
-#toggle-menu{
-    color:royalblue;
-}
-#back{
-    color:crimson;
-}
-#toggle-menu:active{
-    color:skyblue;
-}
-#back:active{
-    color:salmon;
-}
-#undo:active{
-    color:gray;
-}
-#reset:active{
-    color:gray;
-}
-
-nav{
-    background-color: aliceblue;
-    color: black;
-    margin: 0;
-    padding: 0;
-}
-
-.nav-center{
-    display: flex;
-    flex-direction: row;
-    font-size: 1.2rem;
-    margin: 0;
-    padding: 0;
-    box-shadow: -10px 1px 10px 10px rgb(0, 0, 0, 0.3);
-}
-
-.sidebar{
-    z-index: 4;
-    position: fixed;
-    box-sizing: border-box;
-    top: 0;
-    left: 0;
-    width: 100%;
-    grid-template-rows: auto 1fr auto;
-    height: 100%;
-    background: aliceblue;
-    display: grid;
-    font-size: 1.5rem;
-    transition: 0.5s;
-    transform: translate(-100%);
-}
-
-.show-sidebar{
-    transform: translate(0%);
-}
-
-.logo{
-    max-height: 100%;
-    margin: 1rem;
-}
-
-.close-button{
-    width: 4rem;
-    height: 4rem;
-    background-color: transparent;
-    border: 0;
-    color: crimson;
-    font-weight: bold;
-    font-size: 3rem;
-}
-
-.close-button:active{
-    color: lightcoral;
-    transition: all 0.3s;
-}
-
-.stuff{
-    padding: 1rem;
-}
-
-ul li{
-    margin: 0 1rem;
-    transition: all 0.5s;
+.section-list{
+    height: 75vh;
 }
 
 .title{
+    font-size: 3rem;
+    font-weight: bold;
+    text-align: center;
+    margin: 0.5rem auto;
+    width: 100%;
+}
+
+.small{
     font-size: 2rem;
-    font-weight: bolder;
-    color: royalblue;
-    text-align: left;
-    margin: 1rem 0 0 0;
-}
-
-.options{
-    display: flex;
-    flex-direction: column;
-    align-items: left;
-    list-style: none;
-    margin: 1rem 0;
-}
-
-.option{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 1rem;
 }
 
 
-.description{
-    color: black;
-    font-size: 1.5rem;
+#list{
+    text-decoration: none;
+    width: 100%;
+    padding: 0.5rem;
+    overflow-y: scroll;
+    align-content: center;
+    text-align: center;
+}
+
+.btn{
+    width: 15rem;
+    margin: 0.4rem auto;
+    padding: 0.5rem;
+    border: 0.1rem solid black;
+    background-color: black;
+    color: aliceblue;
     font-weight: bold;
 }
 
-.checked{
-    border-bottom: 0.1rem solid rgb(23, 23, 131);
+.btn:active{
+    background-color: gray;
 }
 
-.option button{
-    margin: 0.5rem;
-    padding: 0.1rem;
-    font-size: 2rem;
-    color: rgb(23, 23, 131);
-    background-color: transparent;
-    border-color: transparent;
+#new-page{
+    font-size: 1.8rem;
+    border-radius: 5rem;
+
 }
 
-.option button:active{
-    color: skyblue;
-}
-
-#color{
-    appearance: none;
-    background-color: transparent;
-    width: 2.5rem;
-    height: 2.5rem;
-    border: none;
-    cursor: pointer;
-    margin: 0 0.5rem;
-}
-#color::-webkit-color-swatch{
-    border-radius: 50%;
-    border: 0.1rem solid #000000;
-}
-#color::-moz-color-swatch {
-    border-radius: 50%;
-    border: 0.1rem solid #000000;
-}
-
-#size{
-    width: 10rem;
-    padding: 1rem;
-}
-
-
-@media screen and (min-width: 676px) {
-    .sidebar{
-        width: 400px;
-    }
+.page-selector{
+    font-size: 1.2rem;
+    border-radius: 3rem;
 }
 

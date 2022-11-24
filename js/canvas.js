@@ -1,3 +1,4 @@
+
 //#region components
 const canvas = document.getElementById('real');
 const canvasDraft = document.getElementById('draft')
@@ -56,7 +57,7 @@ let lineCoordinates = {x: 0, y: 0};
 let currentLine = new Line({x: 0, y: 0}, {x: 0, y: 0}, 'black', 0);
 let currentCircle = new Circle({x: 0, y: 0}, '0', 'black', 0);
 let currentCurve = [];
-const pageName = window.location.pathname.split("/").pop().split(".")[0];
+// const pageName = window.location.pathname.split("/").pop().split(".")[0];
 
 const paintings = [];
 
@@ -76,7 +77,20 @@ window.onload = function(){
 	resetButton.addEventListener('click', function(){
 		clearCanvas(contextFinal);
 	});
+	//local storage
+	// var index = localStorage.getItem('index');
+	// if(index == null)
+	// 	index = 0;
+	// console.log(index)
 
+
+	//parametr url
+	const queryString = window.location.search;
+	const urlParams = new URLSearchParams(queryString);
+	const id = urlParams.get('index');
+	console.log(id);
+	if(id == null)
+		window.open('index.html', '_self');
 }
 
 
@@ -262,7 +276,7 @@ function changeSize(){
 //#region communication with PHP
 
 function JsonObject(object){
-	this.name = object.constructor.name;
+	this.className = object.constructor.name;
 	this.attributes = object;
 }
 
