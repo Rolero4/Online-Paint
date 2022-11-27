@@ -2,13 +2,13 @@
 //#region components
 const canvas = document.getElementById('real');
 const canvasDraft = document.getElementById('draft')
-const board = document.querySelector('.board');
 
 const colorInput = document.getElementById("color");
 const sizeInput = document.getElementById("size");
 
 const resetButton = document.getElementById('reset');
 const goToMenuButton = document.getElementById('back');
+const undoButton = document.getElementById('undo');
 
 const toolButtons = document.querySelectorAll('.option button');
 const descriptions = document.querySelectorAll('.description');
@@ -22,12 +22,10 @@ const sidebar = document.querySelector(".sidebar");
 
 function closeSideBar(){
     sidebar.classList.remove("show-sidebar");
-	// board.style.visibility = 'visible';
 };
 
 function toggleSideBar(){
     sidebar.classList.toggle("show-sidebar");
-	// board.style.visibility = 'hidden';
 };
 
 // adding checked to current option
@@ -57,6 +55,7 @@ let lineCoordinates = {x: 0, y: 0};
 let currentLine = new Line({x: 0, y: 0}, {x: 0, y: 0}, 'black', 0);
 let currentCircle = new Circle({x: 0, y: 0}, '0', 'black', 0);
 let currentCurve = [];
+let id;
 
 const paintings = [];
 
@@ -77,17 +76,32 @@ window.onload = function(){
 	// menu buttons events
 	resetButton.addEventListener('click', function(){
 		clearCanvas(contextFinal);
+		paintings.length = 0;
+		saveToJson();
 	});
 
 	goToMenuButton.addEventListener('click', function(){
 		window.open('index.html', '_self');
-		console.log("back");
 	});
+
+	undoButton.addEventListener('click', function(){
+		if(paintings.length > 0){
+			paintings.length = paintings.length - 1;
+			saveToJson();
+			clearCanvas(contextFinal);
+			drawFromPhp();
+		}
+	});
+
+
+	// sendNewCanvasToPhp();
+	saveToJson();
+	window.setInterval(getCanvasFromPhp, 1000); 
 
 	//parametr url
 	const queryString = window.location.search;
 	const urlParams = new URLSearchParams(queryString);
-	const id = urlParams.get('index');
+	id = urlParams.get('index');
 	if(id == null)
 		window.open('index.html', '_self');
 	const name = urlParams.get('name');
@@ -97,6 +111,17 @@ window.onload = function(){
 
 
 //#region TouchEvents
+function drawFromPhp(){
+	paintings.forEach(element => {
+		if(element.className === 'Array')
+			drawCurve(element.attributes, contextFinal)
+		else if(element.className === 'Line')
+			drawLine(element.attributes, contextFinal)
+		else if(element.className === 'Circle')
+			drawCircle(element.attributes, contextFinal)
+	});
+}
+
 function touchStart(e){
 	if(paintingStyle === 'brush')
 		brushStart(e.touches[0])
@@ -125,48 +150,57 @@ function touchEnd(e){
 //#endregion
 
 //#region Brush
-function BrushPoint(x, y, color, width){
-	this.x = x;
-	this.y = y;
+function BrushPoint(point, color, width){
+	this.x = point.x;
+	this.y = point.y;
 	this.color = color;
 	this.width = width;
 }
 
 
 function brushStart(event) {
-	contextFinal.beginPath();
-	const currentBrushPoint = new BrushPoint(event.pageX - canvasDraft.offsetLeft, event.pageY - canvasDraft.offsetTop,
+	contextDraft.beginPath();
+	const currentBrushPoint = new BrushPoint(getClientOffset(event),
 		 currentColor, currentlineWidth)
 	currentCurve.push(currentBrushPoint);
-	contextFinal.moveTo(event.pageX - canvasDraft.offsetLeft, event.pageY - canvasDraft.offsetTop);
-	isIdle = false;
+	contextDraft.moveTo(currentBrushPoint.x*canvasDraft.width, currentBrushPoint.y*canvasDraft.height);
 }
 
 function brushMove(event) {
-	if (isIdle) return;
-	const currentBrushPoint = new BrushPoint(event.pageX - canvasDraft.offsetLeft, event.pageY - canvasDraft.offsetTop, currentColor, currentlineWidth)
+	const currentBrushPoint = new BrushPoint(getClientOffset(event), currentColor, currentlineWidth)
 	currentCurve.push(currentBrushPoint);
-	contextFinal.lineTo(currentBrushPoint.x, currentBrushPoint.y);
-	contextFinal.strokeStyle=currentBrushPoint.color;
-	contextFinal.lineWidth=currentBrushPoint.width;
-	contextFinal.stroke();
+	contextDraft.lineTo(currentBrushPoint.x*canvasDraft.width, currentBrushPoint.y*canvasDraft.height);
+	contextDraft.strokeStyle=currentBrushPoint.color;
+	contextDraft.lineWidth=currentBrushPoint.width;
+	contextDraft.stroke();
 }
 
 function brushEnd(event) {
-	if (isIdle) return;
+	// currentCurve.shift()
+	drawCurve(currentCurve, contextFinal)
+	clearCanvas(contextDraft);
 	prepareObjectToJson(currentCurve);
-	currentCurve = []
-	brushMove(event)
-	isIdle = true;
+	currentCurve = [];
 }
 
+
 function drawCurve(brushPoints, context){
-	context.moveTo(brushPoints[0].x, brushPoints[0].y);
-	for(let i=0; i<brushPoints.length; i++){
-		context.lineTo(brushPoints[i].x, brushPoints[i].y);
-		context.strokeStyle=brushPoints[i].color;
-		context.lineWidth=brushPoints[i].width;
-		context.stroke();
+	if(brushPoints.length>1){
+		context.beginPath()
+		context.moveTo(brushPoints[0].x*canvasDraft.width, brushPoints[0].y*canvasDraft.height);
+		context.strokeStyle=brushPoints[0].color;
+		context.lineWidth=brushPoints[0].width;
+		for(let i=0; i<brushPoints.length; i++){
+			context.lineTo(brushPoints[i].x*canvasDraft.width, brushPoints[i].y*canvasDraft.height);
+			context.stroke();
+		}
+		context.closePath();
+	}
+	else if(brushPoints.length == 1){
+		context.beginPath();
+        context.fillStyle = brushPoints[0].color;
+        context.arc(brushPoints[0].x*canvasDraft.width, brushPoints[0].y*canvasDraft.height, brushPoints[0].width, 0 * Math.PI, 2 * Math.PI);
+        context.fill();
 	}
 }
 
@@ -206,8 +240,8 @@ function lineEnd(){
 
 function drawLine(line, context){
    	context.beginPath();
-   	context.moveTo(line.startX, line.startY);
-   	context.lineTo(line.endX, line.endY);
+   	context.moveTo(line.startX*canvasDraft.width, line.startY*canvasDraft.height);
+   	context.lineTo(line.endX*canvasDraft.width, line.endY*canvasDraft.height);
    	context.strokeStyle=line.color;
    	context.lineWidth=line.width;
    	context.stroke();
@@ -219,10 +253,11 @@ function drawLine(line, context){
 
 //#region Circle
 
-function Circle(centerPoint, radius, color, width){
-	this.centerX = centerPoint.x;
-	this.centerY = centerPoint.y;
-	this.radius = radius;
+function Circle(startPos, endPos, color, width){
+	this.startX = startPos.x;
+	this.startY = startPos.y;
+	this.endX = endPos.x;
+	this.endY = endPos.y;
 	this.color = color;
 	this.width = width;
 }
@@ -236,13 +271,8 @@ function circleStart(event){
 function circleMove(event){
 	if(!isDrawStart) return;
 	lineCoordinates = getClientOffset(event);
-	let radius = Math.sqrt(Math.pow(startPosition.x - lineCoordinates.x, 2) + Math.pow(startPosition.y - lineCoordinates.y, 2))/2
-    let centerPoint = {
-        x: (startPosition.x + lineCoordinates.x)/2,
-        y: (startPosition.y + lineCoordinates.y)/2
-    }
-	currentCircle = new Circle(centerPoint, radius, currentColor, currentlineWidth)
 	clearCanvas(contextDraft);
+	currentCircle = new Circle(startPosition, lineCoordinates, currentColor, currentlineWidth)
 	drawCircle(currentCircle, contextDraft)
 	event.preventDefault()
 }
@@ -256,11 +286,17 @@ function circleEnd(event){
 
 function drawCircle(circle, context){
     context.beginPath();
-    context.arc(circle.centerX, circle.centerY, circle.radius, 0, 2 * Math.PI);
+	let radius = Math.hypot(circle.startX*canvasDraft.width - circle.endX*canvasDraft.width, circle.startY*canvasDraft.height - circle.endY*canvasDraft.height)/2
+    let centerPoint = {
+        x: (circle.startX*canvasDraft.width + circle.endX*canvasDraft.width)/2,
+        y: (circle.startY*canvasDraft.height + circle.endY*canvasDraft.height)/2
+    }
+    context.arc(centerPoint.x, centerPoint.y, radius, 0, 2 * Math.PI);
 	context.strokeStyle=circle.color;
 	context.lineWidth=circle.width;
     context.stroke();
 }
+
 
 
 //#endregion
@@ -277,29 +313,74 @@ function changeSize(){
 
 //#region communication with PHP
 
-function JsonObject(object){
-	this.className = object.constructor.name;
-	this.attributes = object;
+function Canvas(){
+	this.id = id;
+	this.paintings = paintings;
 }
 
+// function JsonObject(object){
+// 	this.className = object.constructor.name;
+// 	this.attributes = object;
+// }
 
 function prepareObjectToJson(object){
-	paintings.push(new JsonObject(object))
-	// console.log(object.constructor.name)
-	// console.log(paintings);
-	var arrayToString = JSON.stringify(Object.assign({}, paintings));  // convert array to string
-	var stringToJsonObject = JSON.parse(arrayToString);  // convert string to json object
-	
-	console.log(stringToJsonObject);
+	// paintings.push(new JsonObject(object))
+	paintings.push({
+		className: object.constructor.name,
+		attributes: object
+	})
+	saveToJson();
 }
+
+function saveToJson(){
+	const xhr = new XMLHttpRequest();
+	stringId = id+'';
+    xhr.open("POST", "./php/saveToJson.php?id=" + stringId, true);
+    xhr.setRequestHeader('Content-type', "application/json");
+    xhr.onreadystatechange = function () { //Call a function when the state changes.
+        if (xhr.readyState == 4 && xhr.status == 200) {
+			getCanvasFromPhp();
+        }
+    };
+    xhr.send(JSON.stringify(Object.assign({}, new Canvas())));
+}
+
+function getCanvasFromPhp(){
+    const xhr = new XMLHttpRequest();
+	stringId = id+'';
+    xhr.onreadystatechange = function() {
+      if(xhr.readyState === 4){
+        if(xhr.status === 200 || xhr.status === 304){
+			try{
+            	const readyResponse = JSON.parse(JSON.parse(JSON.parse(this.response)));
+				if(JSON.stringify(paintings) !== JSON.stringify(readyResponse.paintings)){
+					clearCanvas(contextFinal);
+					paintings.length = 0;
+					readyResponse.paintings.forEach(element =>
+						paintings.push(element)
+					);
+					drawFromPhp();
+				}
+			}
+			catch(error){
+
+			}
+        }
+      }
+    };
+    xhr.open("GET", "./php/getFromJson.php?id=" + stringId, true); 
+    xhr.setRequestHeader('Content-Type', ' application/json')
+    xhr.send();
+}
+
 //#endregion
 
 //#region other functions
 //position on canvas
 function getClientOffset(event){
     const {pageX, pageY} = event.touches ? event.touches[0] : event;
-    const x = pageX - canvasDraft.offsetLeft;
-    const y = pageY - canvasDraft.offsetTop;
+    const x = (pageX - canvasDraft.offsetLeft)/canvasDraft.width;
+    const y = (pageY - canvasDraft.offsetTop)/canvasDraft.height;
     return {
        x,
        y

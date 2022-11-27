@@ -105,10 +105,10 @@ function addNewButton(){
 // go to canvas with event
 function goToCanvas(e){
     let index = e.target.dataset.id;
-    window.open('canvas.html?index='+index+"&name="+pages[index]);
+    window.open('canvas.html?index='+index+"&name="+pages[index], '_self');
 }
 // go to new canvas
 function goToNewCanvas(){
     index = pages.length-1;
-    window.open('canvas.html?index='+index+"&name="+pages[index]);
+    window.open('canvas.html?index='+index+"&name="+pages[index], '_self');
 }
