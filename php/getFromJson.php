@@ -1,5 +1,7 @@
 <?php
     // Program to display complete URL
+    $file = fopen("semafor.txt","w+");
+    flock($file, LOCK_EX);
     $url = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
     $url_components = parse_url($url);
     parse_str($url_components['query'], $params);
@@ -17,4 +19,7 @@
     //id
     // file_put_contents($path, $json_arr);
     echo json_encode($json_arr[$id]);
+    flock($file, LOCK_UN);
+
+    fclose($file);
 ?>
