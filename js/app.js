@@ -1,20 +1,31 @@
-const newPageButton = document.getElementById('new-page')
+//#region global variables
 const listOfButtons = document.getElementById('list');
 const pages = [];
+//#endregion
 
 window.onload = function(){
     getPagesNamesFromPhp();
+    window.setInterval(getPagesNamesFromPhp, 1000);
+    const newPageButton = document.getElementById('new-page')
     newPageButton.addEventListener('click', newPage);
+}
+
+//#region Php communication
+function Canvas(id){
+	this.id = id;
+	this.paintings = [];
 }
 
 function getPagesNamesFromPhp(){
     const xhr = new XMLHttpRequest();
-
     xhr.onreadystatechange = function() {
       if(xhr.readyState === 4){
         if(xhr.status === 200 || xhr.status === 304){
             const readyResponse = JSON.parse(this.response)
-            console.log(readyResponse); 
+            pages.length = 0;
+            for(let i in readyResponse) { 
+                pages.push(readyResponse[i]); 
+            }; 
             createButtons(readyResponse);
         }
       }
@@ -30,51 +41,27 @@ function sendNamesToPhp(){
     xhr.setRequestHeader('Content-type', "application/json");
     xhr.onreadystatechange = function () { //Call a function when the state changes.
         if (xhr.readyState == 4 && xhr.status == 200) {
-            console.log("sent");               
+
         }
     };
-    xhr.send(JSON.stringify(Object.assign({}, pages)));
+    xhr.send(JSON.stringify(pages));
 }
 
-function Canvas(id){
-	this.id = id;
-	this.paintings = [];
-}
-
-function sendNewCanvasToPhp(id){
+function sendNewCanvasToPhp(){
 	const xhr = new XMLHttpRequest();
     xhr.open("POST", "./php/addNewCanvas.php", true);
     xhr.setRequestHeader('Content-type', "application/json");
     xhr.onreadystatechange = function () { //Call a function when the state changes.
         if (xhr.readyState == 4 && xhr.status == 200) {
-            console.log("sent");               
+
         }
     };
     xhr.send(JSON.stringify(Object.assign({}, new Canvas(id))));
 
 }
+//#endregion
 
-
-function createButtons(response){
-    for(let i in response) { 
-        pages.push(response[i]); 
-    }; 
-    console.log(pages);
-    let currentId = 0;
-    pages.forEach(element => {
-        const button = document.createElement('button')
-        button.innerText = element.replace('%', ' ');
-        button.classList = 'btn page-selector'
-        button.dataset.id = currentId;
-        currentId++;
-        listOfButtons.appendChild(button)
-    });
-    const pageButtons = document.querySelectorAll(".page-selector");
-    pageButtons.forEach(element => {
-        element.addEventListener('click', goToCanvas);
-    });
-}
-
+//#region button create center
 function newPage(){
     let newPageName = null;
     newPageName = prompt ("Enter title od the project(max 15 characters, no '%' use and duplicates)", "Page " + pages.length);
@@ -87,28 +74,49 @@ function newPage(){
         newPageName.replace(' ', '%')
         pages.push(newPageName);
         sendNamesToPhp();
-        addNewButton();
+        addNewButton(pages.length-1);
         goToNewCanvas();
         sendNewCanvasToPhp(pages.length -1);
     }
-
 }
 
-function addNewButton(){
-    const index = pages.length-1;
+const removeChilds = (parent) => {
+    while (parent.lastChild) {
+        parent.removeChild(parent.lastChild);
+    }
+};
+
+
+function createButtons(){
+    removeChilds(listOfButtons);
+    for (let index = 0; index < pages.length; index++) {
+        addNewButton(index);
+    }
+
+    const pageButtons = document.querySelectorAll(".page-selector");
+    pageButtons.forEach(element => {
+        element.addEventListener('click', goToCanvas);
+    });
+}
+
+function addNewButton(index){
+
     const button = document.createElement('button')
     button.innerText = pages[index].replace('%', ' ');
-    button.classList = 'btn page-selector'
+    button.classList = 'btn page-selector';
+    button.dataset.id = index;
     listOfButtons.appendChild(button)
 }
+//#endregion
 
-// go to canvas with event
+//#region go to canvas
 function goToCanvas(e){
     let index = e.target.dataset.id;
     window.open('canvas.html?index='+index+"&name="+pages[index], '_self');
 }
-// go to new canvas
+
 function goToNewCanvas(){
     index = pages.length-1;
     window.open('canvas.html?index='+index+"&name="+pages[index], '_self');
 }
+//#endregion

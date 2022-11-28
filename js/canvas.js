@@ -27,6 +27,7 @@ window.onload = function(){
 	menuInit();
 	urlParameters();
 	// server clock init
+	getCanvasFromPhp();
 	window.setInterval(getCanvasFromPhp, 1000); 
 }
 
@@ -98,12 +99,12 @@ toolsButtonsInit = () => {
 	const descriptions = document.querySelectorAll('.description');
 	toolButtons.forEach(element => {
 		element.addEventListener('click', function(e){
-			const id = e.target.dataset.id;
+			const buttonID = e.target.dataset.id;
 			paintingStyle = e.target.dataset.style;
 			descriptions.forEach(element => { 
 					element.classList.remove('checked');
 			});
-			descriptions[id].classList.add('checked');
+			descriptions[buttonID].classList.add('checked');
 		});
 	});
 }
