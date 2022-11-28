@@ -1,79 +1,60 @@
-
-//#region components
-const canvas = document.getElementById('real');
+//#region components and variables
+const canvasFinal = document.getElementById('real');
 const canvasDraft = document.getElementById('draft')
-
-const colorInput = document.getElementById("color");
-const sizeInput = document.getElementById("size");
-
-const resetButton = document.getElementById('reset');
-const goToMenuButton = document.getElementById('back');
-const undoButton = document.getElementById('undo');
-
-const toolButtons = document.querySelectorAll('.option button');
-const descriptions = document.querySelectorAll('.description');
-
-//#endregion
-
-//#region Menu
-const closeButton = document.querySelector(".close-button").addEventListener("click", closeSideBar);
-const toggleButton = document.getElementById("toggle-menu").addEventListener("click", toggleSideBar);
-const sidebar = document.querySelector(".sidebar");
-
-function closeSideBar(){
-    sidebar.classList.remove("show-sidebar");
-};
-
-function toggleSideBar(){
-    sidebar.classList.toggle("show-sidebar");
-};
-
-// adding checked to current option
-toolButtons.forEach(element => {
-	element.addEventListener('click', function(e){
-		const id = e.target.dataset.id;
-		paintingStyle = e.target.dataset.style;
-		descriptions.forEach(element => { 
-				element.classList.remove('checked');
-		});
-		descriptions[id].classList.add('checked');
-	});
-});
-
-//#endregion
-
-//#region global variables
-const contextFinal = canvas.getContext('2d');
+const contextFinal = canvasFinal.getContext('2d');
 const contextDraft = canvasDraft.getContext('2d')
-let touchArray = [];
 let currentColor = 'black';
 let currentlineWidth = 3;
 let paintingStyle = 'brush';
-let isDrawStart = false;
-let startPosition = {x: 0, y: 0};
-let lineCoordinates = {x: 0, y: 0};
+let startPosition = {};
+let lineCoordinates = {};
 let currentLine = new Line({x: 0, y: 0}, {x: 0, y: 0}, 'black', 0);
 let currentCircle = new Circle({x: 0, y: 0}, '0', 'black', 0);
-let currentCurve = [];
+const currentCurve = [];
 let id;
-
 const paintings = [];
-
 //#endregion
 
 window.onload = function(){
-	// canvas events
-	canvas.width = canvasDraft.width = canvasDraft.offsetWidth;
-	canvas.height = canvasDraft.height = canvasDraft.offsetHeight;
-	canvas.width = canvasDraft.width;
-	canvas.height = canvasDraft.height;
+	// canvas size init
+	canvasFinal.width = canvasDraft.width = canvasDraft.offsetWidth;
+	canvasFinal.height = canvasDraft.height = canvasDraft.offsetHeight;
+	// canvas events init
 	canvasDraft.addEventListener('touchstart', touchStart);
 	canvasDraft.addEventListener('touchmove', touchMove);
 	canvasDraft.addEventListener('touchend', touchEnd);
-	// color + size events
-	sizeInput.addEventListener('change', changeSize)
-	colorInput.addEventListener('change', changeColor)
+	// name and menu init rest
+	menuInit();
+	urlParameters();
+	// server clock init
+	window.setInterval(getCanvasFromPhp, 1000); 
+}
+
+//#region URL
+urlParameters = () => {
+	//id section
+	const queryString = window.location.search;
+	const urlParams = new URLSearchParams(queryString);
+	id = urlParams.get('index');
+	if(id == null)
+		window.open('index.html', '_self');
+
+	//page name section
+	const name = urlParams.get('name');
+	const pageName = document.getElementById('pageName');
+	pageName.innerText = name.replace('%', ' ');
+}
+//#endregion
+
+//#region Menu and SideBar
+menuInit = () => {
 	// menu buttons events
+	const resetButton = document.getElementById('reset');
+	const goToMenuButton = document.getElementById('back');
+	const undoButton = document.getElementById('undo');
+
+	sideBarInit();
+
 	resetButton.addEventListener('click', function(){
 		clearCanvas(contextFinal);
 		paintings.length = 0;
@@ -93,22 +74,52 @@ window.onload = function(){
 		}
 	});
 
-
-	// sendNewCanvasToPhp();
-	saveToJson();
-	window.setInterval(getCanvasFromPhp, 1000); 
-
-	//parametr url
-	const queryString = window.location.search;
-	const urlParams = new URLSearchParams(queryString);
-	id = urlParams.get('index');
-	if(id == null)
-		window.open('index.html', '_self');
-	const name = urlParams.get('name');
-	const pageName = document.getElementById('pageName');
-	pageName.innerText = name.replace('%', ' ');
 }
 
+sideBarInit = () => {
+	optionsButtonsInit();
+	toolsButtonsInit();
+
+	const sidebar = document.querySelector(".sidebar");
+
+	const closeButton = document.querySelector(".close-button");
+	closeButton.addEventListener("click", () => {
+		sidebar.classList.remove("show-sidebar");
+	})
+
+	const toggleButton = document.getElementById("toggle-menu");
+	toggleButton.addEventListener("click", () =>{
+		sidebar.classList.toggle("show-sidebar");
+	});
+}
+
+toolsButtonsInit = () => {
+	const toolButtons = document.querySelectorAll('.option button');
+	const descriptions = document.querySelectorAll('.description');
+	toolButtons.forEach(element => {
+		element.addEventListener('click', function(e){
+			const id = e.target.dataset.id;
+			paintingStyle = e.target.dataset.style;
+			descriptions.forEach(element => { 
+					element.classList.remove('checked');
+			});
+			descriptions[id].classList.add('checked');
+		});
+	});
+}
+
+optionsButtonsInit = () => {
+	const colorInput = document.getElementById("color");
+	colorInput.addEventListener('change', ()=>{
+		currentColor = colorInput.value;
+	})
+
+	const sizeInput = document.getElementById("size");
+	sizeInput.addEventListener('change', ()=>{
+		currentlineWidth = sizeInput.value;
+	})	
+}
+//#endregion
 
 //#region TouchEvents
 function drawFromPhp(){
@@ -135,9 +146,9 @@ function touchMove(e){
 	if(paintingStyle === 'brush')
 		brushMove(e.touches[0], e.preventDefault())
 	if(paintingStyle === 'line')
-		lineMove(e)
+		lineMove(e, e.preventDefault())
 	if(paintingStyle === 'circle')
-		circleMove(e)
+		circleMove(e, e.preventDefault())
 }
 function touchEnd(e){
 	if(paintingStyle === 'brush')
@@ -157,11 +168,9 @@ function BrushPoint(point, color, width){
 	this.width = width;
 }
 
-
 function brushStart(event) {
 	contextDraft.beginPath();
-	const currentBrushPoint = new BrushPoint(getClientOffset(event),
-		 currentColor, currentlineWidth)
+	const currentBrushPoint = new BrushPoint(getClientOffset(event), currentColor, currentlineWidth)
 	currentCurve.push(currentBrushPoint);
 	contextDraft.moveTo(currentBrushPoint.x*canvasDraft.width, currentBrushPoint.y*canvasDraft.height);
 }
@@ -175,14 +184,12 @@ function brushMove(event) {
 	contextDraft.stroke();
 }
 
-function brushEnd(event) {
-	// currentCurve.shift()
+function brushEnd() {
 	drawCurve(currentCurve, contextFinal)
 	clearCanvas(contextDraft);
 	prepareObjectToJson(currentCurve);
-	currentCurve = [];
+	currentCurve.length = 0;
 }
-
 
 function drawCurve(brushPoints, context){
 	if(brushPoints.length>1){
@@ -199,7 +206,8 @@ function drawCurve(brushPoints, context){
 	else if(brushPoints.length == 1){
 		context.beginPath();
         context.fillStyle = brushPoints[0].color;
-        context.arc(brushPoints[0].x*canvasDraft.width, brushPoints[0].y*canvasDraft.height, brushPoints[0].width, 0 * Math.PI, 2 * Math.PI);
+        context.arc(brushPoints[0].x*canvasDraft.width, brushPoints[0].y*canvasDraft.height,
+			 brushPoints[0].width, 0 * Math.PI, 2 * Math.PI);
         context.fill();
 	}
 }
@@ -207,7 +215,6 @@ function drawCurve(brushPoints, context){
 //#endregion
 
 //#region Line
-
 function Line(startPos, endPos, color, width){
 	this.startX = startPos.x;
 	this.startY = startPos.y;
@@ -219,23 +226,18 @@ function Line(startPos, endPos, color, width){
 
 function lineStart(event){
 	startPosition = getClientOffset(event);
-	isDrawStart = true;
- }
+}
  
- function lineMove(event){
-   	if(!isDrawStart) return;
+function lineMove(event){
    	lineCoordinates = getClientOffset(event);
-   	clearCanvas(contextDraft);
 	currentLine = new Line(startPosition, lineCoordinates, currentColor, currentlineWidth)
+   	clearCanvas(contextDraft);
 	drawLine(currentLine, contextDraft);
-	event.preventDefault();
 }
  
 function lineEnd(){
 	drawLine(currentLine, contextFinal)
 	prepareObjectToJson(currentLine);
-	clearCanvas(contextDraft)
-	isDrawStart = false;
 }
 
 function drawLine(line, context){
@@ -246,13 +248,9 @@ function drawLine(line, context){
    	context.lineWidth=line.width;
    	context.stroke();
 }
-
-
-
 //#endregion
 
 //#region Circle
-
 function Circle(startPos, endPos, color, width){
 	this.startX = startPos.x;
 	this.startY = startPos.y;
@@ -262,26 +260,20 @@ function Circle(startPos, endPos, color, width){
 	this.width = width;
 }
 
-
 function circleStart(event){
 	startPosition = getClientOffset(event);
-	isDrawStart = true;
 }
  
 function circleMove(event){
-	if(!isDrawStart) return;
 	lineCoordinates = getClientOffset(event);
-	clearCanvas(contextDraft);
 	currentCircle = new Circle(startPosition, lineCoordinates, currentColor, currentlineWidth)
+	clearCanvas(contextDraft);
 	drawCircle(currentCircle, contextDraft)
-	event.preventDefault()
 }
  
-function circleEnd(event){
+function circleEnd(){
 	drawCircle(currentCircle, contextFinal)
 	prepareObjectToJson(currentCircle);
-	clearCanvas(contextDraft)
-	isDrawStart = false;
 }
 
 function drawCircle(circle, context){
@@ -296,35 +288,15 @@ function drawCircle(circle, context){
 	context.lineWidth=circle.width;
     context.stroke();
 }
-
-
-
-//#endregion
-
-//#region Tools
-function changeColor(){
-	currentColor = colorInput.value;
-}
-
-function changeSize(){
-	currentlineWidth = sizeInput.value;
-}
 //#endregion
 
 //#region communication with PHP
-
 function Canvas(){
 	this.id = id;
 	this.paintings = paintings;
 }
 
-// function JsonObject(object){
-// 	this.className = object.constructor.name;
-// 	this.attributes = object;
-// }
-
 function prepareObjectToJson(object){
-	// paintings.push(new JsonObject(object))
 	paintings.push({
 		className: object.constructor.name,
 		attributes: object
@@ -353,7 +325,7 @@ function getCanvasFromPhp(){
         if(xhr.status === 200 || xhr.status === 304){
 			try{
             	const readyResponse = JSON.parse(JSON.parse(JSON.parse(this.response)));
-				if(JSON.stringify(paintings) !== JSON.stringify(readyResponse.paintings)){
+				if(JSON.stringify(paintings) != JSON.stringify(readyResponse.paintings)){
 					clearCanvas(contextFinal);
 					paintings.length = 0;
 					readyResponse.paintings.forEach(element =>
@@ -386,9 +358,8 @@ function getClientOffset(event){
        y
     } 
 }
-//clearing canvas
+//clearing context
 function clearCanvas(context){
     context.clearRect(0, 0, canvasDraft.width, canvasDraft.height);
 }
-
 //#endregion 
