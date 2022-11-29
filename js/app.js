@@ -11,22 +11,22 @@ window.onload = function(){
 }
 
 //#region Php communication
-function Canvas(id){
-	this.id = id;
-	this.paintings = [];
-}
-
 function getPagesNamesFromPhp(){
     const xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
       if(xhr.readyState === 4){
         if(xhr.status === 200 || xhr.status === 304){
-            const readyResponse = JSON.parse(this.response)
-            pages.length = 0;
-            for(let i in readyResponse) { 
-                pages.push(readyResponse[i]); 
-            }; 
-            createButtons(readyResponse);
+            try{
+                const readyResponse = JSON.parse(this.response)
+                pages.length = 0;
+                for(let i in readyResponse) { 
+                    pages.push(readyResponse[i]); 
+                }; 
+                createButtons(readyResponse);
+            }
+            catch(error){
+                
+            }
         }
       }
     };
@@ -47,18 +47,6 @@ function sendNamesToPhp(){
     xhr.send(JSON.stringify(pages));
 }
 
-function sendNewCanvasToPhp(){
-	const xhr = new XMLHttpRequest();
-    xhr.open("POST", "./php/addNewCanvas.php", true);
-    xhr.setRequestHeader('Content-type', "application/json");
-    xhr.onreadystatechange = function () { //Call a function when the state changes.
-        if (xhr.readyState == 4 && xhr.status == 200) {
-
-        }
-    };
-    xhr.send(JSON.stringify(Object.assign({}, new Canvas(id))));
-
-}
 //#endregion
 
 //#region button create center
@@ -76,7 +64,6 @@ function newPage(){
         sendNamesToPhp();
         addNewButton(pages.length-1);
         goToNewCanvas();
-        sendNewCanvasToPhp(pages.length -1);
     }
 }
 

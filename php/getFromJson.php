@@ -2,24 +2,20 @@
     // Program to display complete URL
     $file = fopen("semafor.txt","w+");
     flock($file, LOCK_EX);
+    $path = './json/data.json';
+
+    header('Content-Type: application/json');    
+    //url params
     $url = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
     $url_components = parse_url($url);
     parse_str($url_components['query'], $params);
     $id = $params['id'];
-
-    //geting new json
-    $path = './json/data.json';
-
-    header('Content-Type: application/json');    
-    //getting old json
+    //old json
     $data = file_get_contents($path);
-    // decode json to associative array
     $json_arr = json_decode($data, true);
-
-    //id
-    // file_put_contents($path, $json_arr);
-    echo json_encode($json_arr[$id]);
+    $json_index = json_decode($json_arr[$id], true);
+    echo json_encode($json_index);
+    
     flock($file, LOCK_UN);
-
     fclose($file);
 ?>

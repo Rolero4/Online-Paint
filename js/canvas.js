@@ -10,7 +10,7 @@ let startPosition = {};
 let lineCoordinates = {};
 let currentLine = new Line({x: 0, y: 0}, {x: 0, y: 0}, 'black', 0);
 let currentCircle = new Circle({x: 0, y: 0}, '0', 'black', 0);
-const currentCurve = [];
+let currentCurve = new Curve([], 'black', 0);
 let id;
 const paintings = [];
 //#endregion
@@ -125,12 +125,12 @@ optionsButtonsInit = () => {
 //#region TouchEvents
 function drawFromPhp(){
 	paintings.forEach(element => {
-		if(element.className === 'Array')
-			drawCurve(element.attributes, contextFinal)
-		else if(element.className === 'Line')
-			drawLine(element.attributes, contextFinal)
-		else if(element.className === 'Circle')
-			drawCircle(element.attributes, contextFinal)
+		if(element.name === 'Curve')
+			drawCurve(element, contextFinal)
+		else if(element.name === 'Line')
+			drawLine(element, contextFinal)
+		else if(element.name === 'Circle')
+			drawCircle(element, contextFinal)
 	});
 }
 
@@ -162,53 +162,61 @@ function touchEnd(e){
 //#endregion
 
 //#region Brush
-function BrushPoint(point, color, width){
-	this.x = point.x;
-	this.y = point.y;
+
+function Curve(points, color, width){
+	this.name = "Curve";
+	this.brushPoints = points;
 	this.color = color;
 	this.width = width;
 }
 
+function BrushPoint(point){
+	this.x = point.x;
+	this.y = point.y;
+}
+
 function brushStart(event) {
 	contextDraft.beginPath();
-	const currentBrushPoint = new BrushPoint(getClientOffset(event), currentColor, currentlineWidth)
-	currentCurve.push(currentBrushPoint);
+	const currentBrushPoint = new BrushPoint(getClientOffset(event))
+	currentCurve = new Curve([], currentColor, currentlineWidth);
+	currentCurve.brushPoints.push(currentBrushPoint);
 	contextDraft.moveTo(currentBrushPoint.x*canvasDraft.width, currentBrushPoint.y*canvasDraft.height);
 }
 
 function brushMove(event) {
-	const currentBrushPoint = new BrushPoint(getClientOffset(event), currentColor, currentlineWidth)
-	currentCurve.push(currentBrushPoint);
+	const currentBrushPoint = new BrushPoint(getClientOffset(event))
+	currentCurve.brushPoints.push(currentBrushPoint);
 	contextDraft.lineTo(currentBrushPoint.x*canvasDraft.width, currentBrushPoint.y*canvasDraft.height);
-	contextDraft.strokeStyle=currentBrushPoint.color;
-	contextDraft.lineWidth=currentBrushPoint.width;
+	contextDraft.strokeStyle= currentCurve.color;
+	contextDraft.lineWidth= currentCurve.width;
 	contextDraft.stroke();
 }
 
 function brushEnd() {
 	drawCurve(currentCurve, contextFinal)
 	clearCanvas(contextDraft);
-	prepareObjectToJson(currentCurve);
+	paintings.push(currentCurve);
+	saveToJson();
 	currentCurve.length = 0;
 }
 
-function drawCurve(brushPoints, context){
-	if(brushPoints.length>1){
+function drawCurve(Curve, context){
+	if(Curve.brushPoints.length>1){
 		context.beginPath()
-		context.moveTo(brushPoints[0].x*canvasDraft.width, brushPoints[0].y*canvasDraft.height);
-		context.strokeStyle=brushPoints[0].color;
-		context.lineWidth=brushPoints[0].width;
-		for(let i=0; i<brushPoints.length; i++){
-			context.lineTo(brushPoints[i].x*canvasDraft.width, brushPoints[i].y*canvasDraft.height);
+		context.moveTo(Curve.brushPoints[0].x*canvasDraft.width, Curve.brushPoints[0].y*canvasDraft.height);
+		context.strokeStyle=Curve.color;
+		context.lineWidth=Curve.width;
+		for(let i=0; i<Curve.brushPoints.length; i++){
+			context.lineTo(Curve.brushPoints[i].x*canvasDraft.width, Curve.brushPoints[i].y*canvasDraft.height);
 			context.stroke();
 		}
 		context.closePath();
 	}
-	else if(brushPoints.length == 1){
+	else if(Curve.brushPoints.length == 1){
 		context.beginPath();
-        context.fillStyle = brushPoints[0].color;
-        context.arc(brushPoints[0].x*canvasDraft.width, brushPoints[0].y*canvasDraft.height,
-			 brushPoints[0].width, 0 * Math.PI, 2 * Math.PI);
+        context.fillStyle = Curve.color;
+        context.arc(Curve.brushPoints[0].x*canvasDraft.width, Curve.brushPoints[0].y*canvasDraft.height,
+			Curve.width, 0 * Math.PI, 2 * Math.PI);
         context.fill();
 	}
 }
@@ -217,6 +225,7 @@ function drawCurve(brushPoints, context){
 
 //#region Line
 function Line(startPos, endPos, color, width){
+	this.name = "Line";
 	this.startX = startPos.x;
 	this.startY = startPos.y;
 	this.endX = endPos.x;
@@ -237,8 +246,10 @@ function lineMove(event){
 }
  
 function lineEnd(){
+	clearCanvas(contextDraft);
 	drawLine(currentLine, contextFinal)
-	prepareObjectToJson(currentLine);
+	paintings.push(currentLine);
+	saveToJson();
 }
 
 function drawLine(line, context){
@@ -253,6 +264,7 @@ function drawLine(line, context){
 
 //#region Circle
 function Circle(startPos, endPos, color, width){
+	this.name = "Circle";
 	this.startX = startPos.x;
 	this.startY = startPos.y;
 	this.endX = endPos.x;
@@ -273,8 +285,10 @@ function circleMove(event){
 }
  
 function circleEnd(){
+	clearCanvas(contextDraft);
 	drawCircle(currentCircle, contextFinal)
-	prepareObjectToJson(currentCircle);
+	paintings.push(currentCircle);
+	saveToJson();
 }
 
 function drawCircle(circle, context){
@@ -291,20 +305,6 @@ function drawCircle(circle, context){
 }
 //#endregion
 
-//#region communication with PHP
-function Canvas(){
-	this.id = id;
-	this.paintings = paintings;
-}
-
-function prepareObjectToJson(object){
-	paintings.push({
-		className: object.constructor.name,
-		attributes: object
-	})
-	saveToJson();
-}
-
 function saveToJson(){
 	const xhr = new XMLHttpRequest();
 	stringId = id+'';
@@ -315,7 +315,7 @@ function saveToJson(){
 			getCanvasFromPhp();
         }
     };
-    xhr.send(JSON.stringify(Object.assign({}, new Canvas())));
+    xhr.send(JSON.stringify(paintings));
 }
 
 function getCanvasFromPhp(){
@@ -325,11 +325,11 @@ function getCanvasFromPhp(){
       if(xhr.readyState === 4){
         if(xhr.status === 200 || xhr.status === 304){
 			try{
-            	const readyResponse = JSON.parse(JSON.parse(JSON.parse(this.response)));
-				if(JSON.stringify(paintings) != JSON.stringify(readyResponse.paintings)){
+            	const readyResponse = JSON.parse(this.response);
+				if(JSON.stringify(paintings) != this.response){
 					clearCanvas(contextFinal);
 					paintings.length = 0;
-					readyResponse.paintings.forEach(element =>
+					readyResponse.forEach(element =>
 						paintings.push(element)
 					);
 					drawFromPhp();
