@@ -1,88 +1,88 @@
-:root{
-	box-sizing:border-box;
-    font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+:root {
+  box-sizing: border-box;
+  font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+    "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
 }
 
-*,::after,::before{
-	box-sizing:inherit
+*,
+::after,
+::before {
+  box-sizing: inherit;
 }
 
-*{
-	margin:0;
-	padding:0
+* {
+  margin: 0;
+  padding: 0;
 }
 
-body{
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    background-color: lightyellow;
-    padding: 0.5rem;
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background-color: lightyellow;
+  padding: 0.5rem;
 }
 
-
-section{
-    display: flex;
-    flex-direction: column;
-    margin: 1rem 0;
-    align-items: center;
+section {
+  display: flex;
+  flex-direction: column;
+  margin: 1rem 0;
+  align-items: center;
 }
 
-.section-list{
-    height: 75vh;
+.section-list {
+  height: 75vh;
 }
 
-.title{
-    font-size: 3rem;
-    font-weight: bold;
-    text-align: center;
-    margin: 0.5rem auto;
-    width: 100%;
+.title {
+  font-size: 3rem;
+  font-weight: bold;
+  text-align: center;
+  margin: 0.5rem auto;
+  width: 100%;
 }
 
-.small{
-    font-size: 2rem;
+.small {
+  font-size: 2rem;
 }
 
-
-#list{
-    display: flex;
-    flex-direction: column;
-    text-decoration: none;
-    padding: 0.5rem;
-    overflow-y: auto;
-    align-content: center;
-    text-align: center;
-    margin-bottom: 0.5rem;
+#list {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  padding: 0.5rem;
+  overflow-y: auto;
+  align-content: center;
+  text-align: center;
+  margin-bottom: 0.5rem;
 }
 
-.btn{
-    width: 15rem;
-    margin: 0.4rem auto;
-    padding: 0.5rem;
-    border: 0.1rem solid black;
-    background-color: black;
-    color: aliceblue;
-    font-weight: bold;
+.btn {
+  width: 15rem;
+  margin: 0.4rem auto;
+  padding: 0.5rem;
+  border: 0.1rem solid black;
+  background-color: black;
+  color: aliceblue;
+  font-weight: bold;
 }
 
-.btn:active{
-    background-color: gray;
+.btn:active {
+  background-color: gray;
 }
 
-#new-page{
-    font-size: 1.8rem;
-    border-radius: 5rem;
-
+#new-page {
+  font-size: 1.8rem;
+  border-radius: 5rem;
 }
 
-.page-selector{
-    font-size: 1.2rem;
-    border-radius: 3rem;
+.page-selector {
+  font-size: 1.2rem;
+  border-radius: 3rem;
 }
 
 @media screen and (min-width: 1000px) {
-    .title{
-        font-size: 2rem;
-    }
+  .title {
+    font-size: 2rem;
+  }
 }
