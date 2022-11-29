@@ -1,16 +1,19 @@
-//#region components and variables
+//#region global components and variables
 const canvasFinal = document.getElementById('real');
 const canvasDraft = document.getElementById('draft')
 const contextFinal = canvasFinal.getContext('2d');
-const contextDraft = canvasDraft.getContext('2d')
+const contextDraft = canvasDraft.getContext('2d');
+
 let currentColor = 'black';
 let currentlineWidth = 3;
 let paintingStyle = 'brush';
-let startPosition = {};
-let lineCoordinates = {};
+
 let currentLine = new Line({x: 0, y: 0}, {x: 0, y: 0}, 'black', 0);
 let currentCircle = new Circle({x: 0, y: 0}, '0', 'black', 0);
 let currentCurve = new Curve([], 'black', 0);
+let startPosition;
+let endPosition;
+
 let id;
 const paintings = [];
 //#endregion
@@ -32,7 +35,7 @@ window.onload = function(){
 }
 
 //#region URL
-urlParameters = () => {
+function urlParameters(){
 	//id section
 	const queryString = window.location.search;
 	const urlParams = new URLSearchParams(queryString);
@@ -48,7 +51,7 @@ urlParameters = () => {
 //#endregion
 
 //#region Menu and SideBar
-menuInit = () => {
+function menuInit(){
 	// menu buttons events
 	const resetButton = document.getElementById('reset');
 	const goToMenuButton = document.getElementById('back');
@@ -77,24 +80,24 @@ menuInit = () => {
 
 }
 
-sideBarInit = () => {
+function sideBarInit(){
 	optionsButtonsInit();
 	toolsButtonsInit();
 
-	const sidebar = document.querySelector(".sidebar");
+	const sidebar = document.querySelector('.sidebar');
 
-	const closeButton = document.querySelector(".close-button");
-	closeButton.addEventListener("click", () => {
-		sidebar.classList.remove("show-sidebar");
+	const closeButton = document.querySelector('.close-button');
+	closeButton.addEventListener('click', () => {
+		sidebar.classList.remove('show-sidebar');
 	})
 
-	const toggleButton = document.getElementById("toggle-menu");
-	toggleButton.addEventListener("click", () =>{
-		sidebar.classList.toggle("show-sidebar");
+	const toggleButton = document.getElementById('toggle-menu');
+	toggleButton.addEventListener('click', () =>{
+		sidebar.classList.toggle('show-sidebar');
 	});
 }
 
-toolsButtonsInit = () => {
+function toolsButtonsInit(){
 	const toolButtons = document.querySelectorAll('.option button');
 	const descriptions = document.querySelectorAll('.description');
 	toolButtons.forEach(element => {
@@ -109,13 +112,13 @@ toolsButtonsInit = () => {
 	});
 }
 
-optionsButtonsInit = () => {
-	const colorInput = document.getElementById("color");
+function optionsButtonsInit (){
+	const colorInput = document.getElementById('color');
 	colorInput.addEventListener('change', ()=>{
 		currentColor = colorInput.value;
 	})
 
-	const sizeInput = document.getElementById("size");
+	const sizeInput = document.getElementById('size');
 	sizeInput.addEventListener('change', ()=>{
 		currentlineWidth = sizeInput.value;
 	})	
@@ -162,29 +165,23 @@ function touchEnd(e){
 //#endregion
 
 //#region Brush
-
 function Curve(points, color, width){
-	this.name = "Curve";
+	this.name = 'Curve';
 	this.brushPoints = points;
 	this.color = color;
 	this.width = width;
 }
 
-function BrushPoint(point){
-	this.x = point.x;
-	this.y = point.y;
-}
-
 function brushStart(event) {
 	contextDraft.beginPath();
-	const currentBrushPoint = new BrushPoint(getClientOffset(event))
+	const currentBrushPoint = new Point(getClientOffset(event))
 	currentCurve = new Curve([], currentColor, currentlineWidth);
 	currentCurve.brushPoints.push(currentBrushPoint);
 	contextDraft.moveTo(currentBrushPoint.x*canvasDraft.width, currentBrushPoint.y*canvasDraft.height);
 }
 
 function brushMove(event) {
-	const currentBrushPoint = new BrushPoint(getClientOffset(event))
+	const currentBrushPoint = new Point(getClientOffset(event))
 	currentCurve.brushPoints.push(currentBrushPoint);
 	contextDraft.lineTo(currentBrushPoint.x*canvasDraft.width, currentBrushPoint.y*canvasDraft.height);
 	contextDraft.strokeStyle= currentCurve.color;
@@ -225,11 +222,9 @@ function drawCurve(Curve, context){
 
 //#region Line
 function Line(startPos, endPos, color, width){
-	this.name = "Line";
-	this.startX = startPos.x;
-	this.startY = startPos.y;
-	this.endX = endPos.x;
-	this.endY = endPos.y;
+	this.name = 'Line';
+	this.startPoint = startPos;
+	this.endPoint = endPos;
 	this.color = color;
 	this.width = width;
 }
@@ -239,8 +234,8 @@ function lineStart(event){
 }
  
 function lineMove(event){
-   	lineCoordinates = getClientOffset(event);
-	currentLine = new Line(startPosition, lineCoordinates, currentColor, currentlineWidth)
+   	endPosition = getClientOffset(event);
+	currentLine = new Line(startPosition, endPosition, currentColor, currentlineWidth)
    	clearCanvas(contextDraft);
 	drawLine(currentLine, contextDraft);
 }
@@ -254,8 +249,8 @@ function lineEnd(){
 
 function drawLine(line, context){
    	context.beginPath();
-   	context.moveTo(line.startX*canvasDraft.width, line.startY*canvasDraft.height);
-   	context.lineTo(line.endX*canvasDraft.width, line.endY*canvasDraft.height);
+   	context.moveTo(line.startPoint.x*canvasDraft.width, line.startPoint.y*canvasDraft.height);
+   	context.lineTo(line.endPoint.x*canvasDraft.width, line.endPoint.y*canvasDraft.height);
    	context.strokeStyle=line.color;
    	context.lineWidth=line.width;
    	context.stroke();
@@ -264,11 +259,9 @@ function drawLine(line, context){
 
 //#region Circle
 function Circle(startPos, endPos, color, width){
-	this.name = "Circle";
-	this.startX = startPos.x;
-	this.startY = startPos.y;
-	this.endX = endPos.x;
-	this.endY = endPos.y;
+	this.name = 'Circle';
+	this.startPoint = startPos;
+	this.endPoint = endPos;
 	this.color = color;
 	this.width = width;
 }
@@ -278,25 +271,26 @@ function circleStart(event){
 }
  
 function circleMove(event){
-	lineCoordinates = getClientOffset(event);
-	currentCircle = new Circle(startPosition, lineCoordinates, currentColor, currentlineWidth)
+	endPosition = getClientOffset(event);
+	currentCircle = new Circle(startPosition, endPosition, currentColor, currentlineWidth)
 	clearCanvas(contextDraft);
 	drawCircle(currentCircle, contextDraft)
 }
  
 function circleEnd(){
 	clearCanvas(contextDraft);
+	// if(JSON.stringify(currentCircle) == JSON.stringify(new Circle({x: 0, y: 0}, '0', 'black', 0)))
+		paintings.push(currentCircle);
 	drawCircle(currentCircle, contextFinal)
-	paintings.push(currentCircle);
 	saveToJson();
 }
 
 function drawCircle(circle, context){
     context.beginPath();
-	let radius = Math.hypot(circle.startX*canvasDraft.width - circle.endX*canvasDraft.width, circle.startY*canvasDraft.height - circle.endY*canvasDraft.height)/2
+	let radius = Math.hypot(circle.startPoint.x*canvasDraft.width - circle.endPoint.x*canvasDraft.width, circle.startPoint.y*canvasDraft.height - circle.endPoint.y*canvasDraft.height)/2
     let centerPoint = {
-        x: (circle.startX*canvasDraft.width + circle.endX*canvasDraft.width)/2,
-        y: (circle.startY*canvasDraft.height + circle.endY*canvasDraft.height)/2
+        x: (circle.startPoint.x*canvasDraft.width + circle.endPoint.x*canvasDraft.width)/2,
+        y: (circle.startPoint.y*canvasDraft.height + circle.endPoint.y*canvasDraft.height)/2
     }
     context.arc(centerPoint.x, centerPoint.y, radius, 0, 2 * Math.PI);
 	context.strokeStyle=circle.color;
@@ -305,11 +299,12 @@ function drawCircle(circle, context){
 }
 //#endregion
 
+//#region Php commucation
 function saveToJson(){
 	const xhr = new XMLHttpRequest();
 	stringId = id+'';
-    xhr.open("POST", "./php/saveToJson.php?id=" + stringId, true);
-    xhr.setRequestHeader('Content-type', "application/json");
+    xhr.open('POST', './php/saveToJson.php?id=' + stringId, true);
+    xhr.setRequestHeader('Content-type', 'application/json');
     xhr.onreadystatechange = function () { //Call a function when the state changes.
         if (xhr.readyState == 4 && xhr.status == 200) {
 			getCanvasFromPhp();
@@ -341,7 +336,7 @@ function getCanvasFromPhp(){
         }
       }
     };
-    xhr.open("GET", "./php/getFromJson.php?id=" + stringId, true); 
+    xhr.open('GET', './php/getFromJson.php?id=' + stringId, true); 
     xhr.setRequestHeader('Content-Type', ' application/json')
     xhr.send();
 }
@@ -349,15 +344,19 @@ function getCanvasFromPhp(){
 //#endregion
 
 //#region other functions
+function Point(point){
+	this.x = point.x;
+	this.y = point.y;
+}
 //position on canvas
 function getClientOffset(event){
     const {pageX, pageY} = event.touches ? event.touches[0] : event;
     const x = (pageX - canvasDraft.offsetLeft)/canvasDraft.width;
     const y = (pageY - canvasDraft.offsetTop)/canvasDraft.height;
     return {
-       x,
-       y
-    } 
+		x,
+		y
+	}
 }
 //clearing context
 function clearCanvas(context){
