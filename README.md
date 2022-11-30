@@ -1,4 +1,4 @@
-# Online-Paint
+# Online Paint for mobiles
 
 ## What is it?
 
